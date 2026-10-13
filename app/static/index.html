@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AM-700 parts catalogue</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+  h1 { font-size: 1.4rem; }
+  section { border: 1px solid #ddd; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; }
+  input { padding: 0.4rem; font-size: 1rem; width: 16rem; }
+  button { padding: 0.4rem 0.9rem; font-size: 1rem; margin-left: 0.4rem; cursor: pointer; }
+  pre { background: #f6f6f6; padding: 0.8rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+  .note { color: #666; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<h1>AM-700 service parts catalogue</h1>
+
+<section>
+  <h2 style="font-size:1.1rem">Machine validation</h2>
+  <button id="btn-validation">Show validation</button>
+  <pre id="out-validation"></pre>
+</section>
+
+<section>
+  <h2 style="font-size:1.1rem">Part lookup</h2>
+  <p class="note">Part numbers are case-insensitive and ignore spaces, e.g. <code>fa-30019</code>.</p>
+  <input id="pn" placeholder="e.g. FA-30019" aria-label="Part number">
+  <button id="btn-part">Look up part</button>
+  <button id="btn-paths">Show paths</button>
+  <pre id="out-part"></pre>
+</section>
+
+<section>
+  <h2 style="font-size:1.1rem">Serial number</h2>
+  <p class="note">Counts ready parts that can be replaced on a machine with this serial number.</p>
+  <input id="serial" placeholder="e.g. 2500" inputmode="numeric" aria-label="Serial number">
+  <button id="btn-serial">Check serial</button>
+  <pre id="out-serial"></pre>
+</section>
+
+<script>
+  async function show(url, outId) {
+    const out = document.getElementById(outId);
+    out.textContent = "Loading...";
+    try {
+      const res = await fetch(url);
+      const body = await res.json();
+      out.textContent = res.status + " " + JSON.stringify(body, null, 2);
+    } catch (err) {
+      out.textContent = "Request failed: " + err;
+    }
+  }
+  const pn = () => encodeURIComponent(document.getElementById("pn").value.trim());
+  document.getElementById("btn-validation").onclick = () => show("/api/validation", "out-validation");
+  document.getElementById("btn-part").onclick = () => show("/api/parts/" + pn(), "out-part");
+  document.getElementById("btn-paths").onclick = () => show("/api/parts/" + pn() + "/paths", "out-part");
+  document.getElementById("btn-serial").onclick = () =>
+    show("/api/serial/" + encodeURIComponent(document.getElementById("serial").value.trim()), "out-serial");
+</script>
+</body>
+</html>
